@@ -1,0 +1,62 @@
+﻿<Window x:Class="OutlookSync.SyncWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:OutlookSync"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="800" d:DataContext="{d:DesignInstance local:SyncWindow}">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type local:StoredAppointment}">
+            <StackPanel>
+                <TextBlock Text="{Binding Subject}"/>
+                <TextBlock Text="{Binding Location}"/>
+                <TextBlock>
+                    <Run Text="{Binding Start}"/>
+                    <Run Text=" - "/>
+                    <Run Text="{Binding End}"/>
+                </TextBlock>
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
+    
+    <DockPanel>
+        <DockPanel Dock="Left">
+            <TextBlock DockPanel.Dock="Top" Text="Log"/>
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                <Button x:Name="AnalyzeButton" Content="Analyze" Width="100" Click="AnalyzeClick"/>
+                <Button x:Name="ExecuteButton" Content="Execute" Width="100" Margin="20,0,0,0" IsEnabled="False" Click="ExecuteClick"/>
+            </StackPanel>
+
+            <ScrollViewer>
+                <ItemsControl ItemsSource="{Binding Messages}" MinWidth="300"/>
+            </ScrollViewer>
+        </DockPanel>
+        
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Outlook"/>
+            <ListBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding OutlookAppointments}"/>
+
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="Google"/>
+            <ListBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding GoogleAppointments}"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Appointments to add"/>
+            <ListBox Grid.Row="3" Grid.Column="0" ItemsSource="{Binding AppointmentsToAdd}"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="Appointments to remove"/>
+            <ListBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding AppointmentsToRemove}"/>
+        </Grid>
+    </DockPanel>
+</Window>

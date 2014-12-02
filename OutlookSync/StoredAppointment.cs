@@ -31,14 +31,25 @@ namespace OutlookSync
             Subject = e.Summary;
             Location = e.Location;
 
-            if (e.Start.Date != null)
-                Start = DateTime.Parse(e.Start.Date);
+            if (e.Start.DateTime.HasValue)
+                Start = e.Start.DateTime.Value;
 
-            if (e.End.Date != null)
-                End = DateTime.Parse(e.End.Date);
+            if (e.End.DateTime.HasValue)
+                End = e.End.DateTime.Value;
 
             if (e.Updated != null)
                 LastModificationTime = e.Updated.Value;
+        }
+
+        public Event ToGoogleEvent()
+        {
+            return new Event
+            {
+                Summary = Subject,
+                Start = new EventDateTime { DateTime = Start },
+                End = new EventDateTime { DateTime = End },
+                Location = Location
+            };
         }
 
         public override bool Equals(object obj)
@@ -54,9 +65,9 @@ namespace OutlookSync
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return string.Equals(Subject, other.Subject) && 
-                  string.Equals(Location, other.Location) && 
-                  Start.Equals(other.Start) && 
-                  End.Equals(other.End);
+                   string.Equals(Location, other.Location) && 
+                   Start.Equals(other.Start) && 
+                   End.Equals(other.End);
         }
 
         public override int GetHashCode()

@@ -3,34 +3,36 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Calendar.v3;
+using Google.Apis.Calendar.v3.Data;
+using Google.Apis.Requests;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
-using NLog;
 using Outlook = Microsoft.Office.Interop.Outlook;
-using Office = Microsoft.Office.Core;
 
 namespace OutlookSync
 {
     public class SyncEngine
     {
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        private const string application_name = "OutlookSync";
+        private const string ClientSecrets = "client_secrets.json";
 
+        private readonly TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+        private readonly string dir;
         private CalendarService service;
 
-        public string BaseDir { get; private set; }
+        public Task IsReady { get { return tcs.Task; } }
 
-        public SyncEngine()
+        public SyncEngine(string dir)
         {
-            BaseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), application_name);
+            this.dir = dir;
         }
 
         public void Initialize()
         {
-            var secrets_file = Path.Combine(BaseDir, "client_secrets.json");
-
+            var secrets_file = Path.Combine(dir, ClientSecrets);
             UserCredential credential;
             using (var stream = new FileStream(secrets_file, FileMode.Open, FileAccess.Read))
             {
@@ -38,14 +40,35 @@ namespace OutlookSync
                     GoogleClientSecrets.Load(stream).Secrets,
                     new[] { CalendarService.Scope.Calendar },
                     "user", CancellationToken.None,
-                    new FileDataStore(BaseDir, true)).Result;
+                    new FileDataStore(dir, true)).Result;
             }
 
             service = new CalendarService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = credential,
-                ApplicationName = application_name,
+                ApplicationName = ThisAddIn.ApplicationName,
             });
+            
+            tcs.SetResult(true);
+        }
+
+        public IEnumerable<GoogleCalendar> GetCalendars()
+        {
+            IsReady.Wait();
+
+            var calendars = service.CalendarList.List().Execute();
+            return calendars.Items.Select(i => new GoogleCalendar(i.Summary, i.Id));
+        }
+
+        public List<StoredAppointment> GetGoogleItems(string id, DateTime start, DateTime end)
+        {
+            var request = service.Events.List(id);
+            request.TimeMin = start;
+            request.TimeMax = end;
+            return request.Execute().Items
+                          .Select(e => new StoredAppointment(e))
+                          .OrderBy(e => e.Start)
+                          .ToList();
         }
 
         public List<StoredAppointment> GetOutlookItems(DateTime start, DateTime end)
@@ -56,7 +79,7 @@ namespace OutlookSync
             items.IncludeRecurrences = true;
             items.Sort("[Start]", Type.Missing);
 
-            var filter = "[Start] >= '" + start.ToString("g") + "' and [Start] <= '" + end.ToString("g") + "'";
+            var filter = "[Start] >= '" + start.ToString("g") + "' and [Start] < '" + end.ToString("g") + "'";
             return items.Restrict(filter)
                         .Cast<object>()
                         .OfType<Outlook.AppointmentItem>()
@@ -64,21 +87,49 @@ namespace OutlookSync
                         .ToList();
         }
 
-        public List<StoredAppointment> GetGoogleItems(string id, DateTime start, DateTime end)
+        public void AddGoogleItems(string id, IEnumerable<StoredAppointment> items)
         {
-            var request = service.Events.List(id);
-            request.TimeMin = start;
-            request.TimeMax = end;
-            return request.ExecuteAsync().Result.Items
-                          .Select(e => new StoredAppointment(e))
-                          .ToList();
+            var chunks = items.Chunk(50).ToList();
+            foreach (var chunk in chunks)
+            {
+                var br = new BatchRequest(service);
+
+                foreach (var appointment in chunk)
+                {
+                    var google_event = appointment.ToGoogleEvent();
+                    var request = service.Events.Insert(google_event, id);
+                    br.Queue<Event>(request, (r, e, i, m) =>
+                    {
+                        if (!m.IsSuccessStatusCode)
+                            MessageBox.Show("Error: " + e.Message);
+                    });
+                }
+
+                br.ExecuteAsync().Wait();
+                Thread.Sleep(250);
+            }
         }
 
-        public IEnumerable<string> GetGoogleCalendars()
+        public void RemoveGoogleItems(string id, IEnumerable<StoredAppointment> items)
         {
-            var request = service.CalendarList.List();
-            var response = request.ExecuteAsync().Result;
-            return response.Items.Select(i => i.Summary + ":" + i.Id);
+            var chunks = items.Chunk(50).ToList();
+            foreach (var chunk in chunks)
+            {
+                var br = new BatchRequest(service);
+
+                foreach (var appointment in chunk)
+                {
+                    var request = service.Events.Delete(id, appointment.Id);
+                    br.Queue<Event>(request, (r, e, i, m) =>
+                    {
+                        if (!m.IsSuccessStatusCode)
+                            MessageBox.Show("Error: " + e.Message);
+                    });
+                }
+
+                br.ExecuteAsync().Wait();
+                Thread.Sleep(250);
+            }
         }
     }
 }

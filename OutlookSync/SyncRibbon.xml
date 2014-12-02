@@ -5,16 +5,21 @@
       <tab idMso="TabAddIns">
         <group id="SyncGroup"
                label="Sync">
-          <!--<button id="SyncAll"
+          <button id="SyncAll"
                   onAction="SyncAllCallback"
                   size="large"
                   label="Sync"
-                  imageMso="SynchronizeData"/>-->
-          <button id="OpenWindow"
-                  onAction="OpenWindowCallback"
-                  size="large"
-                  label="Open"
                   imageMso="SynchronizeData"/>
+          <button id="SyncUI"
+                  onAction="SyncUICallback"
+                  size="large"
+                  label="UI"
+                  imageMso="SynchronizeData"/>
+          <button id="SyncSettings"
+                  onAction="SettingsCallback"
+                  size="large"
+                  label="Settings"
+                  imageMso="FileSave"/>
         </group>
       </tab>
     </tabs>

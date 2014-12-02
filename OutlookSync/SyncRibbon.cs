@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Microsoft.Office.Interop.Outlook;
-using NLog;
 using Office = Microsoft.Office.Core;
 
 // TODO:  Follow these steps to enable the Ribbon (XML) item:
@@ -12,7 +11,7 @@ using Office = Microsoft.Office.Core;
 
 //  protected override Microsoft.Office.Core.IRibbonExtensibility CreateRibbonExtensibilityObject()
 //  {
-//      return new Ribbon1();
+//      return new SyncRibbon();
 //  }
 
 // 2. Create callback methods in the "Ribbon Callbacks" region of this class to handle user
@@ -30,8 +29,6 @@ namespace OutlookSync
     [ComVisible(true)]
     public class SyncRibbon : Office.IRibbonExtensibility
     {
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-
         private Office.IRibbonUI ribbon;
 
         public SyncRibbon()
@@ -40,7 +37,7 @@ namespace OutlookSync
 
         #region IRibbonExtensibility Members
 
-        public string GetCustomUI(string ribbonID)
+        public string GetCustomUI(string ribbon_id)
         {
             return GetResourceText("OutlookSync.SyncRibbon.xml");
         }
@@ -50,38 +47,42 @@ namespace OutlookSync
         #region Ribbon Callbacks
         //Create callback methods here. For more information about adding callback methods, visit http://go.microsoft.com/fwlink/?LinkID=271226
 
+        public void SyncUICallback(Office.IRibbonControl control)
+        {
+            var win = new SyncWindow();
+            win.Show();
+        }
+
         public void SyncAllCallback(Office.IRibbonControl control)
         {
         }
 
-        public void OpenWindowCallback(Office.IRibbonControl control)
+        public void SettingsCallback(Office.IRibbonControl control)
         {
+            var win = new SettingsWindow();
+            win.Show();
         }
 
-        public void Ribbon_Load(Office.IRibbonUI ribbonUI)
+        public void Ribbon_Load(Office.IRibbonUI ribbon_ui)
         {
-            this.ribbon = ribbonUI;
+            ribbon = ribbon_ui;
         }
 
         #endregion
 
         #region Helpers
 
-        private static string GetResourceText(string resourceName)
+        private static string GetResourceText(string name_to_find)
         {
             var asm = Assembly.GetExecutingAssembly();
-            var resourceNames = asm.GetManifestResourceNames();
-            foreach (string t in resourceNames)
+            var resource_names = asm.GetManifestResourceNames();
+            var name = resource_names.Single(n => string.Compare(name_to_find, n, StringComparison.OrdinalIgnoreCase) == 0);
+
+            // ReSharper disable once AssignNullToNotNullAttribute
+            using (var resource_reader = new StreamReader(asm.GetManifestResourceStream(name)))
             {
-                if (string.Compare(resourceName, t, StringComparison.OrdinalIgnoreCase) == 0)
-                {
-                    using (var resourceReader = new StreamReader(asm.GetManifestResourceStream(t)))
-                    {
-                        return resourceReader.ReadToEnd();
-                    }
-                }
+                return resource_reader.ReadToEnd();
             }
-            return null;
         }
 
         #endregion

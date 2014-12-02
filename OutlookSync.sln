@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OutlookSync", "OutlookSync\OutlookSync.csproj", "{9D9CD3C1-5C91-4E57-A18C-956FC57D6EBB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OutlookSync", "OutlookSync\OutlookSync.csproj", "{E3773D4B-54CC-44E3-8C5A-96A324A6EA21}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9D9CD3C1-5C91-4E57-A18C-956FC57D6EBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9D9CD3C1-5C91-4E57-A18C-956FC57D6EBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9D9CD3C1-5C91-4E57-A18C-956FC57D6EBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9D9CD3C1-5C91-4E57-A18C-956FC57D6EBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3773D4B-54CC-44E3-8C5A-96A324A6EA21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3773D4B-54CC-44E3-8C5A-96A324A6EA21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3773D4B-54CC-44E3-8C5A-96A324A6EA21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3773D4B-54CC-44E3-8C5A-96A324A6EA21}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
