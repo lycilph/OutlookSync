@@ -18,7 +18,6 @@ namespace OutlookSync
     public class SyncEngine
     {
         private const string ClientSecrets = "client_secrets.json";
-
         private readonly TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
         private readonly string dir;
         private CalendarService service;
@@ -52,7 +51,7 @@ namespace OutlookSync
             tcs.SetResult(true);
         }
 
-        public IEnumerable<GoogleCalendar> GetCalendars()
+        public IEnumerable<GoogleCalendar> GetGoogleCalendars()
         {
             IsReady.Wait();
 
@@ -62,6 +61,8 @@ namespace OutlookSync
 
         public List<StoredAppointment> GetGoogleItems(string id, DateTime start, DateTime end)
         {
+            IsReady.Wait();
+
             var request = service.Events.List(id);
             request.TimeMin = start;
             request.TimeMax = end;
@@ -73,6 +74,8 @@ namespace OutlookSync
 
         public List<StoredAppointment> GetOutlookItems(DateTime start, DateTime end)
         {
+            IsReady.Wait();
+
             var calendar = Globals.ThisAddIn.Application.Session.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderCalendar);
             var items = calendar.Items;
 
@@ -89,6 +92,8 @@ namespace OutlookSync
 
         public void AddGoogleItems(string id, IEnumerable<StoredAppointment> items)
         {
+            IsReady.Wait();
+
             var chunks = items.Chunk(50).ToList();
             foreach (var chunk in chunks)
             {
@@ -112,6 +117,8 @@ namespace OutlookSync
 
         public void RemoveGoogleItems(string id, IEnumerable<StoredAppointment> items)
         {
+            IsReady.Wait();
+
             var chunks = items.Chunk(50).ToList();
             foreach (var chunk in chunks)
             {
@@ -130,6 +137,25 @@ namespace OutlookSync
                 br.ExecuteAsync().Wait();
                 Thread.Sleep(250);
             }
+        }
+
+        public void Sync()
+        {
+            IsReady.Wait();
+
+            var settings = Globals.ThisAddIn.Settings;
+
+            var id = settings.CalendarId;
+            var start = DateTime.Now.Date;
+            var end = start.AddDays(settings.SyncWindow);
+
+            var google_items = GetGoogleItems(id, start, end);
+            var outlook_items = GetOutlookItems(start, end);
+            var items_to_remove = google_items.Except(outlook_items);
+            var items_to_add = outlook_items.Except(google_items);
+
+            RemoveGoogleItems(id, items_to_remove);
+            AddGoogleItems(id, items_to_add);
         }
     }
 }

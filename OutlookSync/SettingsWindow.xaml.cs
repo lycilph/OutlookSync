@@ -44,7 +44,7 @@ namespace OutlookSync
         {
             Loaded -= OnLoaded;
 
-            if (settings.IsInitialized)
+            if (settings.IsLoggedIn)
             {
                 await LoadCalendars();
 
@@ -81,7 +81,7 @@ namespace OutlookSync
             await Task.Factory.StartNew(sync_engine.Initialize);
             await LoadCalendars();
 
-            settings.IsInitialized = true;
+            settings.IsLoggedIn = true;
 
             LoginButton.IsEnabled = false;
             SyncWindowTextBox.IsEnabled = true;
@@ -91,7 +91,7 @@ namespace OutlookSync
 
         private async Task LoadCalendars()
         {
-            var list = await Task.Factory.StartNew(() => sync_engine.GetCalendars());
+            var list = await Task.Factory.StartNew(() => sync_engine.GetGoogleCalendars());
             Calendars = new ObservableCollection<GoogleCalendar>(list);
 
             if (string.IsNullOrWhiteSpace(settings.CalendarId))

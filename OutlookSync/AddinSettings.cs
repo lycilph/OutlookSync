@@ -10,14 +10,14 @@ namespace OutlookSync
 
         private string dir;
 
-        private bool is_initialized;
-        public bool IsInitialized
+        private bool is_logged_in;
+        public bool IsLoggedIn
         {
-            get { return is_initialized; }
+            get { return is_logged_in; }
             set
             {
-                if (value.Equals(is_initialized)) return;
-                is_initialized = value;
+                if (value.Equals(is_logged_in)) return;
+                is_logged_in = value;
                 OnPropertyChanged();
             }
         }
@@ -50,7 +50,7 @@ namespace OutlookSync
         public AddinSettings(string dir)
         {
             this.dir = dir;
-            IsInitialized = false;
+            IsLoggedIn = false;
             SyncWindow = 30;
             CalendarId = string.Empty;
 
