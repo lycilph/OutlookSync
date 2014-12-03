@@ -22,10 +22,14 @@ namespace OutlookSync
 
         private async void ThisAddIn_Startup(object sender, EventArgs e)
         {
+            log.Trace("Startup");
+
             var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ApplicationName);
             Settings = AddinSettings.Load(dir);
             SyncEngine = new SyncEngine(dir);
             SyncScheduler = new SyncScheduler();
+
+            log.Trace("Attaching event handlers");
 
             calendar_folder = Application.Session.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderCalendar);
             calendar_items = calendar_folder.Items;

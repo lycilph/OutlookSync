@@ -3,13 +3,16 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using NLog;
 
 namespace OutlookSync
 {
     public partial class SyncWindow
     {
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
         private readonly AddinSettings settings;
         private readonly SyncEngine sync_engine;
+        private readonly SyncScheduler sync_scheduler;
 
         public ObservableCollection<string> Messages
         {
@@ -58,6 +61,7 @@ namespace OutlookSync
 
             settings = Globals.ThisAddIn.Settings;
             sync_engine = Globals.ThisAddIn.SyncEngine;
+            sync_scheduler = Globals.ThisAddIn.SyncScheduler;
 
             Messages = new ObservableCollection<string>();
             OutlookAppointments = new ObservableCollection<StoredAppointment>();
@@ -66,12 +70,21 @@ namespace OutlookSync
             AppointmentsToAdd = new ObservableCollection<StoredAppointment>();
 
             Loaded += OnLoaded;
+            Closed += OnClosed;
+        }
+
+        private void OnClosed(object sender, EventArgs event_args)
+        {
+            log.Trace("Closing");
+            sync_scheduler.Start();
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs routed_event_args)
         {
+            log.Trace("Loaded");
             Loaded -= OnLoaded;
 
+            sync_scheduler.Stop();
             await Analyze();
         }
 
@@ -135,7 +148,7 @@ namespace OutlookSync
                 AppointmentsToRemove.Clear();
 
                 Messages.Add("Removing items");
-                await Task.Factory.StartNew(() => sync_engine.RemoveGoogleItems(settings.CalendarId, items_to_remove));                
+                await Task.Factory.StartNew(() => sync_engine.RemoveGoogleItems(settings.CalendarId, items_to_remove));
             }
 
             if (AppointmentsToAdd.Any())
@@ -144,7 +157,7 @@ namespace OutlookSync
                 AppointmentsToAdd.Clear();
 
                 Messages.Add("Adding items");
-                await Task.Factory.StartNew(() => sync_engine.AddGoogleItems(settings.CalendarId, items_to_add));                
+                await Task.Factory.StartNew(() => sync_engine.AddGoogleItems(settings.CalendarId, items_to_add));
             }
 
             Messages.Add("Execute done");
@@ -177,7 +190,7 @@ namespace OutlookSync
 
             Messages.Add("Analyze done");
 
-            ExecuteButton.IsEnabled = true;
+            ExecuteButton.IsEnabled = AppointmentsToAdd.Any() || AppointmentsToRemove.Any();
             AnalyzeButton.IsEnabled = true;
         }
     }

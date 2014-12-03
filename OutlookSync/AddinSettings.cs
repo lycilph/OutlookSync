@@ -1,14 +1,14 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Newtonsoft.Json;
+using NLog;
 
 namespace OutlookSync
 {
     public class AddinSettings : ObservableObject
     {
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
         private const string Filename = "settings.json";
-
-        private string dir;
+        private string base_dir;
 
         private bool is_logged_in;
         public bool IsLoggedIn
@@ -34,6 +34,18 @@ namespace OutlookSync
             }
         }
 
+        private int scheduler_interval;
+        public int SchedulerInterval
+        {
+            get { return scheduler_interval; }
+            set
+            {
+                if (value == scheduler_interval) return;
+                scheduler_interval = value;
+                OnPropertyChanged();
+            }
+        }
+
         private string calendar_id;
         public string CalendarId
         {
@@ -46,33 +58,39 @@ namespace OutlookSync
             }
         }
 
-        public AddinSettings() : this(string.Empty) {}
-        public AddinSettings(string dir)
+        public AddinSettings()
         {
-            this.dir = dir;
             IsLoggedIn = false;
             SyncWindow = 30;
+            SchedulerInterval = 10;
             CalendarId = string.Empty;
+        }
 
+        public void Initialize(string dir)
+        {
+            base_dir = dir;
             PropertyChanged += (o, a) => Save();
         }
 
         public static AddinSettings Load(string dir)
         {
-            var path = Path.Combine(dir, Filename);
+            log.Trace("Loading");
 
+            var path = Path.Combine(dir, Filename);
             if (!File.Exists(path))
-                return new AddinSettings(dir);
+                return new AddinSettings();
 
             var json = File.ReadAllText(path);
             var settings = JsonConvert.DeserializeObject<AddinSettings>(json);
-            settings.dir = dir;
+            settings.Initialize(dir);
             return settings;
         }
 
         public void Save()
         {
-            var path = Path.Combine(dir, Filename);
+            log.Trace("Saving");
+
+            var path = Path.Combine(base_dir, Filename);
             var json = JsonConvert.SerializeObject(this, Formatting.Indented);
             File.WriteAllText(path, json);
         }

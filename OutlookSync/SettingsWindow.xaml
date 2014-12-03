@@ -12,6 +12,8 @@
             <RowDefinition/>
             <RowDefinition/>
             <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
         </Grid.RowDefinitions>
         
         <Grid.ColumnDefinitions>
@@ -21,13 +23,16 @@
         
         <TextBlock Grid.Row="0" Grid.Column="0" Text="Sync Window (in days)" VerticalAlignment="Center"/>
         <TextBox x:Name="SyncWindowTextBox" Grid.Row="0" Grid.Column="1" Text="{Binding SyncWindow}" IsEnabled="False" Margin="20,0,0,0"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Sync Scheduler (in minutes)" VerticalAlignment="Center" Margin="0,20,0,0"/>
+        <TextBox x:Name="SchedulerIntervalTextBox" Grid.Row="1" Grid.Column="1" Text="{Binding xxx}" IsEnabled="False" Margin="20,20,0,0"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Calendar" VerticalAlignment="Center" Margin="0,20,0,0"/>
+        <ComboBox x:Name="CalendarsComboBox" Grid.Row="2" Grid.Column="1" Margin="20,20,0,0" IsEnabled="False" IsSynchronizedWithCurrentItem="True" ItemsSource="{Binding Calendars}" DisplayMemberPath="DisplayName"/>
         
-        <TextBlock Grid.Row="1" Grid.Column="0" Text="Calendar" VerticalAlignment="Center" Margin="0,20,0,0"/>
-        <ComboBox x:Name="CalendarsComboBox" Grid.Row="1" Grid.Column="1" Margin="20,20,0,0" IsEnabled="False" IsSynchronizedWithCurrentItem="True" ItemsSource="{Binding Calendars}" DisplayMemberPath="DisplayName"/>
+        <Button x:Name="LoginButton" Grid.Row="3" Grid.Column="1" Content="Log in" Margin="20,20,0,0" IsEnabled="False" Click="OnLoginClick"/>
         
-        <Button x:Name="LoginButton" Grid.Row="2" Grid.Column="1" Content="Log in" Margin="20,20,0,0" IsEnabled="False" Click="OnLoginClick"/>
-        
-        <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+        <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
             <Button x:Name="OkButton" Content="Ok" Width="100" IsEnabled="False" IsDefault="True" Click="OnOkClick"/>
             <Button Content="Cancel" Width="100" Margin="20,0,0,0" IsCancel="True" Click="OnCancelClick"/>
         </StackPanel>

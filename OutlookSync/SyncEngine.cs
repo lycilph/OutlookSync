@@ -11,12 +11,14 @@ using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Requests;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
+using NLog;
 using Outlook = Microsoft.Office.Interop.Outlook;
 
 namespace OutlookSync
 {
     public class SyncEngine
     {
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
         private const string ClientSecrets = "client_secrets.json";
         private readonly TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
         private readonly string dir;
@@ -31,6 +33,8 @@ namespace OutlookSync
 
         public void Initialize()
         {
+            log.Trace("Initializing");
+
             var secrets_file = Path.Combine(dir, ClientSecrets);
             UserCredential credential;
             using (var stream = new FileStream(secrets_file, FileMode.Open, FileAccess.Read))
@@ -151,11 +155,14 @@ namespace OutlookSync
 
             var google_items = GetGoogleItems(id, start, end);
             var outlook_items = GetOutlookItems(start, end);
-            var items_to_remove = google_items.Except(outlook_items);
-            var items_to_add = outlook_items.Except(google_items);
+            var items_to_remove = google_items.Except(outlook_items).ToList();
+            var items_to_add = outlook_items.Except(google_items).ToList();
 
-            RemoveGoogleItems(id, items_to_remove);
-            AddGoogleItems(id, items_to_add);
+            if (items_to_remove.Any())
+                RemoveGoogleItems(id, items_to_remove);
+
+            if (items_to_add.Any())
+                AddGoogleItems(id, items_to_add);
         }
     }
 }

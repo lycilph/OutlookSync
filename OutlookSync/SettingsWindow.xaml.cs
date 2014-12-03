@@ -19,6 +19,14 @@ namespace OutlookSync
         public static readonly DependencyProperty SyncWindowProperty =
             DependencyProperty.Register("SyncWindow", typeof(int), typeof(SettingsWindow), new PropertyMetadata(0));
 
+        public int SyncScheduler
+        {
+            get { return (int)GetValue(SyncSchedulerProperty); }
+            set { SetValue(SyncSchedulerProperty, value); }
+        }
+        public static readonly DependencyProperty SyncSchedulerProperty =
+            DependencyProperty.Register("SyncScheduler", typeof(int), typeof(SettingsWindow), new PropertyMetadata(0));
+
         public ObservableCollection<GoogleCalendar> Calendars
         {
             get { return (ObservableCollection<GoogleCalendar>)GetValue(CalendarsProperty); }
@@ -38,6 +46,7 @@ namespace OutlookSync
             sync_engine = Globals.ThisAddIn.SyncEngine;
 
             SyncWindow = settings.SyncWindow;
+            SyncScheduler = settings.SchedulerInterval;
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs routed_event_args)
@@ -49,6 +58,7 @@ namespace OutlookSync
                 await LoadCalendars();
 
                 SyncWindowTextBox.IsEnabled = true;
+                SchedulerIntervalTextBox.IsEnabled = true;
                 CalendarsComboBox.IsEnabled = true;
                 OkButton.IsEnabled = true;
             }
@@ -85,6 +95,7 @@ namespace OutlookSync
 
             LoginButton.IsEnabled = false;
             SyncWindowTextBox.IsEnabled = true;
+            SchedulerIntervalTextBox.IsEnabled = true;
             CalendarsComboBox.IsEnabled = true;
             OkButton.IsEnabled = true;
         }
